@@ -65,11 +65,10 @@ private:
     uint8_t _page_buffer[TARGET_PAGESIZE];
     uint8_t _temp_buffer[TARGET_PAGESIZE];
     uint8_t _tx_enable;
-    uint8_t _cs;
     uint8_t _error;
 
 public:
-    uint8_t begin(HardwareSerial *serial, uint8_t tx_enable_pin, uint8_t cs_pin);
+    uint8_t begin(HardwareSerial *serial, uint8_t tx_enable_pin);
 
     //Check device connection
     uint8_t sync();

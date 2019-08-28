@@ -32,8 +32,8 @@
 #endif
 
 #include "DudeLib.h"
-#include <SD.h>
 #include "stk500.h"
+#include <Fs.h>
 
 #define atohex(high_nibble, low_nibble) ((char_to_hex(high_nibble) << 4) | char_to_hex(low_nibble))
 
@@ -44,11 +44,7 @@
 #define RX_WAIT_TIMEOUT     500
 #define SETTLE_TIME      	  100
 
-//SD library settings
-#define SEL_PIN			        53
-
 //Error codes
-#define SD_INIT_ERROR       0x01
 #define NO_RESPONSE         0x02
 #define HEX_FILE_NOT_FOUND  0x03
 #define WRONG_DEVICE_TYPE   0x04
@@ -58,28 +54,17 @@
 //---------------------------------------------------
 //DudeLib constructor
 //---------------------------------------------------
-uint8_t DudeLib::begin(HardwareSerial *serial, uint8_t tx_enable_pin, uint8_t cs_pin) {
+uint8_t DudeLib::begin(HardwareSerial *serial, uint8_t tx_enable_pin) {
   _serial = serial;
 
   // AVRDUDE SECTION --------------------------------------
   //Set communications with target board
-  _cs = cs_pin;
   _tx_enable = tx_enable_pin;
   _error = 0;
 
   if (_tx_enable) {
     pinMode(_tx_enable, OUTPUT);
     digitalWrite(_tx_enable, LOW); //Set RS485 in reception mode
-  }
-
-  // SD SECTION -------------------------------------------------
-  // Check sd card
-  pinMode(SEL_PIN, OUTPUT);
-
-  // init SD card
-  if (!SD.begin(_cs)) {
-    _error = SD_INIT_ERROR;
-    return false;
   }
 
   return true;
@@ -128,7 +113,7 @@ uint8_t DudeLib::get_information(uint8_t* info) {
 }
 
 //---------------------------------------------------
-// Program target device using hex file found on SD card
+// Program target device using hex file on SPIFFS
 //---------------------------------------------------
 uint16_t DudeLib::program(char *filename) {
 
@@ -140,7 +125,7 @@ uint16_t DudeLib::program(char *filename) {
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
-  File file = SD.open(filename);
+  File file = SPIFFS.open(filename);
 
   // if the file is not available exit
   if (!file) {
@@ -250,7 +235,7 @@ uint8_t DudeLib::verify(char *filename) {
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
-  File file = SD.open(filename);
+  File file = SPIFFS.open(filename);
 
   // if the file is not available exit
   if (!file) {
@@ -301,7 +286,7 @@ uint8_t DudeLib::verify(char *filename) {
       if (p == (TARGET_PAGESIZE)) {
         //read flash page
         load_address(address>>1);
-        DA QUI NON FUNZIONA
+        //DA QUI NON FUNZIONA
         read_page(_temp_buffer, TARGET_PAGESIZE);
 
         //Compare buffers
